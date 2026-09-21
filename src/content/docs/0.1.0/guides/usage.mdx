@@ -9,8 +9,11 @@ import ListOptions from '../../../../components/ListOptions.astro';
 import { Tabs, TabItem } from '@astrojs/starlight/components';
 import { FileTree } from '@astrojs/starlight/components';
 import { Steps } from '@astrojs/starlight/components';
+import schemaImage from '../../../../assets/0.1.0/sf-mouse-schema.png';
 
-![sf-mouse pipeline schema](../../../../assets/0.1.0/sf-mouse-schema.png)
+<div class="centered">
+  <img src={schemaImage.src} alt="sf-mouse pipeline schema" />
+</div>
 
 :::note[Parameters and profiles]
 A pipeline like `sf-mouse` is highly flexible and configurable. To simplify usage for anyone who wants to run it 

@@ -55,6 +55,13 @@ try {
           Use fODF for tracking
         </label>
       </div>
+            <div style="margin-bottom: 0.5rem;">
+        <label>
+          <input type="checkbox" id="data-masked" name="data-masked" />
+          Mask provided
+        </label>
+      </div>
+
 
       <h5 style="margin-top: 1.5rem;">Skip processing steps</h5>
         <ul>
@@ -108,6 +115,31 @@ try {
           </label>
         </div>
       </div>
+
+        <div style="margin-top: 1rem; margin-bottom: 0.5rem;">
+          <strong>In vivo profile:</strong>
+        </div>
+        <div style="margin-bottom: 0.3rem;">
+          <label>
+            <input type="checkbox" id="profile-invivo" value="in_vivo" />
+            In vivo
+          </label>
+        </div>
+        <div id="invivo-options" style="display: none; margin-left: 1rem;">
+          <div style="margin-bottom: 0.3rem;">
+            <label>
+              <input type="checkbox" id="resampling-invivo" value="resampling-invivo" />
+              Resampling in vivo
+            </label>
+          </div>
+          <div style="margin-bottom: 0.3rem;">
+            <label>
+              <input type="checkbox" id="tracking-invivo" value="tracking-invivo" />
+              Tracking in vivo
+            </label>
+          </div>
+        </div>
+      </div>
     </div>
 
     <div id="summary" class="summary-box">
@@ -131,10 +163,15 @@ try {
     const checkboxes = document.querySelectorAll('.options-list ul input[type="checkbox"]');
     const usePreqcCheckbox = document.getElementById('use-preqc');
     const useFodfForTrackingCheckbox = document.getElementById('use-fodf-for-tracking');
+    const dataMaskedCheckbox = document.getElementById('data-masked');
     const containerRadios = document.querySelectorAll('input[name="container"]');
     const profilePreqc = document.getElementById('profile-preqc');
     const profileSlurm = document.getElementById('profile-slurm');
     const profileGpu = document.getElementById('profile-gpu');
+    const profileInvivo = document.getElementById('profile-invivo');
+    const invivoOptions = document.getElementById('invivo-options');
+    const trackingInvivoCheckbox = document.getElementById('tracking-invivo');
+    const resamplingInvivoCheckbox = document.getElementById('resampling-invivo');
     const versionSelect = document.getElementById('version-select');
     const inputDir = document.getElementById('input-dir');
     const outputDir = document.getElementById('output-dir');
@@ -165,6 +202,18 @@ try {
         parts.push('--use_fodf_for_tracking true');
       }
 
+      if (dataMaskedCheckbox.checked) {
+        parts.push('--data_masked true');
+      }
+
+      if (trackingInvivoCheckbox.checked) {
+        parts.push('--run_tracking true');
+      }
+
+      if (resamplingInvivoCheckbox.checked) {
+        parts.push('--run_resampling true');
+      }
+
       // Build profile list
       const profiles = [];
       const selectedContainer = document.querySelector('input[name="container"]:checked');
@@ -174,6 +223,7 @@ try {
       if (profilePreqc.checked) profiles.push('pre_qc');
       if (profileSlurm.checked) profiles.push('slurm');
       if (profileGpu.checked) profiles.push('gpu');
+      if (profileInvivo.checked) profiles.push('invivo');
 
       parts.push(`-profile ${profiles.join(',')}`);
 
@@ -218,6 +268,8 @@ try {
         console.error('Failed to copy:', err);
       });
     }
+
+    function updateInvivoVisibility() {invivoOptions.style.display = profileInvivo.checked ? 'block' : 'none';}
     
     // Load saved preferences
     const saved = {
@@ -227,10 +279,14 @@ try {
       profilePreqc: localStorage.getItem('profilePreqc') === 'true',
       profileSlurm: localStorage.getItem('profileSlurm') === 'true',
       profileGpu: localStorage.getItem('profileGpu') === 'true',
+      profileInvivo: localStorage.getItem('profileInvivo') === 'true',
       input: localStorage.getItem('selectedInput') || 'INPUT',
       output: localStorage.getItem('selectedOutput') || './results',
       usePreqc: localStorage.getItem('selectedUsePreqc') === 'true',
       useFodfForTracking: localStorage.getItem('selectedUseFodfForTracking') === 'true',
+      dataMasked: localStorage.getItem('selectedDataMasked') === 'true',
+      resamplingInvivo: localStorage.getItem('selectedResamplingforInvivo') === 'true',
+      trackingInvivo: localStorage.getItem('selectedTrackingforInvivo') === 'true',
     };
 
     // Helper to add change listener
@@ -270,6 +326,13 @@ try {
     profileGpu.checked = saved.profileGpu;
     addChangeListener(profileGpu, 'profileGpu', el => el.checked);
 
+    profileInvivo.checked = saved.profileInvivo;
+    profileInvivo.addEventListener('change', () => {
+      localStorage.setItem('profileInvivo', profileInvivo.checked);
+      updateInvivoVisibility();
+      updateSummary();});
+      updateInvivoVisibility();
+
     inputDir.value = saved.input;
     inputDir.addEventListener('input', () => {
       localStorage.setItem('selectedInput', inputDir.value);
@@ -287,6 +350,15 @@ try {
 
     useFodfForTrackingCheckbox.checked = saved.useFodfForTracking;
     addChangeListener(useFodfForTrackingCheckbox, 'selectedUseFodfForTracking', el => el.checked);
+
+    dataMaskedCheckbox.checked = saved.dataMasked;
+    addChangeListener(dataMaskedCheckbox, 'selectedDataMasked', el => el.checked);
+
+    trackingInvivoCheckbox.checked = saved.trackingInvivo;
+    addChangeListener(trackingInvivoCheckbox, 'selectedTrackingforInvivo', el => el.checked);
+
+    resamplingInvivoCheckbox.checked = saved.resamplingInvivo;
+    addChangeListener(resamplingInvivoCheckbox, 'selectedResamplingforInvivo', el => el.checked);
 
     updateSummary();
   });
